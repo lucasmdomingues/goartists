@@ -16,7 +16,7 @@ import (
 
 func main() {
 
-	artist, err := SearchArtist(appID, "Megadeth")
+	artist, err := goartists.SearchArtist(appID, "Megadeth")
 	if err != nil {
 		t.Error(err)
 		return
@@ -38,13 +38,13 @@ func main() {
   
   const appID = ""
 
-	artist, err := SearchArtist(appID, "Megadeth")
+	artist, err := goartists.SearchArtist(appID, "Megadeth")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	events, err := artist.GetEvents(appID)
+	events, err := goartist.GetEvents(appID)
 	if err != nil {
 		t.Error(err)
 		return
