@@ -38,3 +38,8 @@ type Offer struct {
 	URL    string `json:"url"`
 	Status string `json:"status"`
 }
+
+type BandsintownError struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}

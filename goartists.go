@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const bandSintownPrefix = "https://rest.bandsintown.com"
@@ -33,12 +34,12 @@ func SearchArtist(appID, artistName string) (*Artist, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("%v", string(body))
+	if resp.StatusCode != 200 || strings.Contains(string(body), "error") {
+		return nil, newBandsintownError(body)
 	}
 
 	if len(string(body)) == 2 {
-		return nil, fmt.Errorf("%s", "No results returned")
+		return nil, fmt.Errorf("%s", "No artist returned")
 	}
 
 	var artist *Artist
@@ -75,12 +76,12 @@ func (artist *Artist) GetEvents(appID string) ([]*Event, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("%v", string(body))
+	if resp.StatusCode != 200 || strings.Contains(string(body), "error") {
+		return nil, newBandsintownError(body)
 	}
 
-	if len(string(body)) == 2 {
-		return nil, fmt.Errorf("%s", "No results returned")
+	if strings.TrimSpace(string(body)) == "[]" {
+		return nil, fmt.Errorf("%s", "No events returned")
 	}
 
 	var events []*Event
@@ -91,4 +92,22 @@ func (artist *Artist) GetEvents(appID string) ([]*Event, error) {
 	}
 
 	return events, nil
+}
+
+func newBandsintownError(error []byte) error {
+
+	var bandsintownError *BandsintownError
+
+	err := json.Unmarshal(error, &bandsintownError)
+	if err != nil {
+		return err
+	}
+
+	if bandsintownError.Message != "" {
+		err = fmt.Errorf("%s", bandsintownError.Message)
+	} else if bandsintownError.Error != "" {
+		err = fmt.Errorf("%s", bandsintownError.Error)
+	}
+
+	return fmt.Errorf("%s", err)
 }

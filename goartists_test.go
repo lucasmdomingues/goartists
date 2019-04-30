@@ -8,18 +8,18 @@ const appID = ""
 
 func TestSearchArtist(t *testing.T) {
 
-	artist, err := SearchArtist(appID, "Megadethz")
+	artist, err := SearchArtist(appID, "Megadeth")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	t.Logf("%v", artist.Name)
+	t.Logf("%v", artist)
 }
 
 func TestGetEvents(t *testing.T) {
 
-	artist, err := SearchArtist(appID, "Megadethz")
+	artist, err := SearchArtist(appID, "Megadeth")
 	if err != nil {
 		t.Error(err)
 		return
