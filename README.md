@@ -1,34 +1,30 @@
-# Instalação
+# Installation
 
 ```go 
 go get github.com/lucasmdomingues/goartists
 ```
 
-# Exemplos
+# Examples
 
-### Busca de artista ou banda por nome.
+### Search artists by name.
 
 ```go
 import (
 	"fmt"
-	"goartists"
+	"github.com./lucasmdomingues/goartists"
 )
 
 func main() {
+	service := NewService("API_KEY")
 
-	appID := ""
-
-	artist, err := goartists.SearchArtist(appID, "Megadeth")
+	_, err := service.Search("Megadeth")
 	if err != nil {
-		t.Error(err)
-		return
+		log.Fatal(err)
 	}
-
-	t.Logf("%v", artist.Name)
 }
 ```
 
-### Busca de eventos por artista ou banda.
+### Search artist events.
 
 ```go
 import (
@@ -37,22 +33,16 @@ import (
 )
 
 func main() {
-  
-  	appID := ""
+	service := NewService("API_KEY")
 
-	artist, err := goartists.SearchArtist(appID, "Megadeth")
+	artist, err := service.Search("Megadeth")
 	if err != nil {
-		t.Error(err)
-		return
+		log.Fatal(err)
 	}
 
-	events, err := goartist.GetEvents(appID)
-	if err != nil {
-		t.Error(err)
-		return
+	if err = service.GetEvents(artist); err != nil {
+		log.Fatal(err)
 	}
-
-	t.Logf("%v", events[0].Venue)
 }
 ```
 ### Bandsintown

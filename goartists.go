@@ -2,28 +2,33 @@ package goartists
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
-const bandSintownPrefix = "https://rest.bandsintown.com"
+const URL = "https://rest.bandsintown.com"
 
-func SearchArtist(appID, artistName string) (*Artist, error) {
+type service struct {
+	AppID string
+}
 
-	url := fmt.Sprintf("%s/artists/%s?app_id=%s", bandSintownPrefix, artistName, appID)
+type Service interface {
+	Search(name string) (*Artist, error)
+	GetEvents(artist *Artist) error
+}
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
+func NewService(appID string) Service {
+	return &service{
+		AppID: appID,
 	}
+}
 
-	req.Header.Set("Content-type", "application/json")
+func (s *service) Search(name string) (*Artist, error) {
+	url := fmt.Sprintf("%s/artists/%s?app_id=%s", URL, name, s.AppID)
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -34,12 +39,12 @@ func SearchArtist(appID, artistName string) (*Artist, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 || strings.Contains(string(body), "error") {
+	if resp.StatusCode != http.StatusOK {
 		return nil, newBandsintownError(body)
 	}
 
-	if len(string(body)) == 2 {
-		return nil, fmt.Errorf("%s", "No artist returned")
+	if string(body) == `""` {
+		return nil, errors.New("Oops, artists not found")
 	}
 
 	var artist *Artist
@@ -52,62 +57,40 @@ func SearchArtist(appID, artistName string) (*Artist, error) {
 	return artist, nil
 }
 
-func (artist *Artist) GetEvents(appID string) ([]*Event, error) {
-
-	url := fmt.Sprintf("%s/artists/%s/events?app_id=%s", bandSintownPrefix, artist.Name, appID)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
+func (s *service) GetEvents(artist *Artist) error {
+	if artist == nil {
+		return errors.New("Oops, artist invalid")
 	}
 
-	req.Header.Set("Content-type", "application/json")
+	url := fmt.Sprintf("%s/artists/%s/events?app_id=%s", URL, artist.Name, s.AppID)
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
+	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if resp.StatusCode != 200 || strings.Contains(string(body), "error") {
-		return nil, newBandsintownError(body)
+	if resp.StatusCode != http.StatusOK {
+		return newBandsintownError(body)
 	}
 
-	if strings.TrimSpace(string(body)) == "[]" {
-		return nil, fmt.Errorf("%s", "No events returned")
-	}
-
-	var events []*Event
-
-	err = json.Unmarshal(body, &events)
-	if err != nil {
-		return nil, err
-	}
-
-	return events, nil
+	return json.Unmarshal(body, &artist.Events)
 }
 
-func newBandsintownError(error []byte) error {
-
+func newBandsintownError(errByte []byte) error {
 	var bandsintownError *BandsintownError
 
-	err := json.Unmarshal(error, &bandsintownError)
+	err := json.Unmarshal(errByte, &bandsintownError)
 	if err != nil {
 		return err
 	}
 
-	if bandsintownError.Message != "" {
-		err = fmt.Errorf("%s", bandsintownError.Message)
-	} else if bandsintownError.Error != "" {
-		err = fmt.Errorf("%s", bandsintownError.Error)
-	}
+	err = fmt.Errorf("Oops, %s", bandsintownError.Message)
 
-	return fmt.Errorf("%s", err)
+	return err
 }
