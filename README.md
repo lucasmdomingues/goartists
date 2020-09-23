@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	service := NewService("API_KEY")
+	service := goartists.NewService("API_KEY")
 
 	_, err := service.Search("Megadeth")
 	if err != nil {
@@ -35,7 +35,7 @@ import (
 )
 
 func main() {
-	service := NewService("API_KEY")
+	service := goartists.NewService("API_KEY")
 
 	artist, err := service.Search("Megadeth")
 	if err != nil {
