@@ -10,7 +10,8 @@ go get github.com/lucasmdomingues/goartists
 
 ```go
 import (
-	"fmt"
+	"log"
+
 	"github.com./lucasmdomingues/goartists"
 )
 
@@ -28,8 +29,9 @@ func main() {
 
 ```go
 import (
-	"fmt"
-	"goartists"
+	"log"
+	
+	"github.com./lucasmdomingues/goartists"
 )
 
 func main() {
